@@ -1,0 +1,121 @@
+[project]
+name = "whisper-dictation"
+version = "1.0.0"
+description = "Cross-platform multilingual dictation using OpenAI Whisper"
+requires-python = ">=3.10,<3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "Whisper Dictation Contributors" }
+]
+readme = "README.md"
+keywords = ["whisper", "dictation", "speech-to-text", "voice-recognition"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pyaudio>=0.2.13",
+    "numpy>=1.24.0",
+    "pynput>=1.7.6",
+    "faster-whisper>=1.1.0",
+]
+
+[project.optional-dependencies]
+macos = [
+    "rumps>=0.4.0",
+    "pyobjc-core>=12.1",
+    "pyobjc-framework-quartz>=12.1",
+    "pyobjc-framework-cocoa>=12.1",
+]
+linux = [
+    "evdev>=1.6.0",
+]
+
+[project.scripts]
+whisper-dictation = "whisper_dictation.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-timeout>=2.2.0",
+    "ruff>=0.8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, test component interaction)",
+    "macos: macOS-specific tests",
+    "linux: Linux-specific tests",
+    "x11: X11-specific tests",
+    "wayland: Wayland-specific tests",
+    "slow: Slow-running tests",
+]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--timeout=10",
+]
+
+[tool.coverage.run]
+source = ["whisper_dictation"]
+omit = [
+    "*/tests/*",
+    "*/__main__.py",
+    "*/cli.py",
+    "*/ui/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+show_missing = true
+precision = 2
+
+[tool.ruff]
+target-version = "py310"
+line-length = 88
+exclude = [".git", ".venv", "__pycache__", "build", "dist", "*.egg-info"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501", "N802", "SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"*/cli.py" = ["T201"]
+"*/ui/*.py" = ["T201"]
+"__main__.py" = ["T201"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["whisper_dictation"]
+lines-after-imports = 2
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
