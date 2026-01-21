@@ -1,4 +1,4 @@
-"""Configuration management with platform-aware defaults."""
+"""Configuration management with platformaware defaults."""
 
 import importlib.util
 from dataclasses import dataclass
@@ -43,47 +43,45 @@ def create_default_config(
     no_gui: bool = False,
 ) -> DictationConfig:
     """
-    Create a configuration with platform-aware defaults.
+    Create a configuration with platformaware defaults.
 
     Args:
-        model: Model name override
-        hotkey: Hotkey override
-        use_double_cmd: Use double Right-Command on macOS
-        languages: List of language codes
-        max_time: Maximum recording time in seconds
-        no_gui: Force CLI mode (disable GUI)
+        model: Model name override.
+        hotkey: Hotkey override.
+        use_double_cmd: Use double RightCommand on macOS.
+        languages: List of language codes.
+        max_time: Maximum recording time in seconds (``None`` = unlimited).
+        no_gui: Force CLI mode (disable GUI).
 
     Returns:
-        DictationConfig: Configuration object
+        DictationConfig: The populated configuration object.
     """
     platform = get_platform_info()
 
-    # Determine model name
+    # Model name
     if model is None:
         model = "large-v3-turbo"
 
-    # Determine hotkey
+    # Hotkey
     if hotkey is None:
-        if platform.is_macos:
-            hotkey = "cmd_l+alt"
-        else:
-            hotkey = "ctrl+alt"
+        hotkey = "cmd_l+alt" if platform.is_macos else "ctrl+alt"
 
-    # Determine UI mode
-    ui_mode: Literal["gui", "cli"]
+    # UI mode
     if no_gui or not platform.is_macos:
-        ui_mode = "cli"
+        ui_mode: Literal["gui", "cli"] = "cli"
     else:
-        # Try to use GUI on macOS if rumps is available
-        if importlib.util.find_spec("rumps") is not None:
-            ui_mode = "gui"
-        else:
-            ui_mode = "cli"
+        ui_mode = "gui" if importlib.util.find_spec("rumps") is not None else "cli"
 
-    # Parse languages
-    default_language = None
-    if languages is not None and len(languages) > 0:
-        default_language = languages[0]
+    # Platformspecific default for max_recording_time
+    if max_time is None:
+        default_max_time = None  # unlimited
+    elif platform.is_macos:
+        default_max_time = 30.0  # macOS default is 30/s
+    else:
+        default_max_time = max_time  # keep the supplied default (600/s)
+
+    # Languages
+    default_language = languages[0] if languages else None
 
     return DictationConfig(
         model_name=model,
@@ -91,7 +89,7 @@ def create_default_config(
         use_double_cmd=use_double_cmd,
         languages=languages,
         default_language=default_language,
-        max_recording_time=max_time,
+        max_recording_time=default_max_time,
         sample_rate=16000,
         frames_per_buffer=1024,
         ui_mode=ui_mode,
@@ -101,28 +99,28 @@ def create_default_config(
 
 def validate_config(config: DictationConfig) -> None:
     """
-    Validate configuration and raise errors for invalid settings.
+    Validate a configuration and raise errors for invalid settings.
 
     Args:
-        config: Configuration to validate
+        config: Configuration to validate.
 
     Raises:
-        ValueError: If configuration is invalid
+        ValueError: If the configuration is invalid.
     """
-    # Check if GUI is requested but not supported
+    # GUI only supported on macOS
     if config.ui_mode == "gui" and not config.platform.is_macos:
         raise ValueError("GUI mode is only supported on macOS")
 
-    # Check language compatibility with .en models
+    # .en models must be used with English only
     if ".en" in config.model_name and config.languages is not None:
         non_english = [lang for lang in config.languages if lang != "en"]
         if non_english:
             raise ValueError(
-                f"Model '{config.model_name}' is English-only but languages "
+                f"Model '{config.model_name}' is Englishonly but languages "
                 f"{non_english} were specified"
             )
 
-    # Check if ydotool is needed on Wayland
+    # Wayland requires ydotool
     if config.platform.is_wayland:
         import shutil
 
@@ -131,7 +129,7 @@ def validate_config(config: DictationConfig) -> None:
                 "[!] Warning: ydotool is not installed. Text injection may not work on Wayland."
             )
 
-    # Check if evdev is needed on Linux
+    # Linux requires evdev
     if config.platform.is_linux and importlib.util.find_spec("evdev") is None:
         print(
             "[!] Warning: evdev is not installed. Install it with: uv sync --extra linux"
