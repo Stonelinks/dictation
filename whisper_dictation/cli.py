@@ -75,12 +75,13 @@ Examples:
         "-l",
         "--language",
         type=str,
-        default=None,
+        default="en",
         help=(
             "Language code(s) for transcription (e.g., 'en', 'es', 'fr'). "
             "Multiple languages can be comma-separated (e.g., 'en,es,fr'). "
             "If multiple languages are specified, you can switch between them in the GUI. "
             "For CLI mode, the first language is used. "
+            "Default: 'en' (English). "
             "See https://github.com/openai/whisper for supported languages."
         ),
     )
