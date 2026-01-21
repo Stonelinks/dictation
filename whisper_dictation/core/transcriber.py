@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from numpy.typing import NDArray
 
+from whisper_dictation.platform.detection import get_platform_info
+
 
 class WhisperTranscriber(ABC):
     """Abstract base class for Whisper transcription."""
@@ -55,8 +57,21 @@ class StandardWhisperTranscriber(WhisperTranscriber):
             ) from None
 
         self.model_name = model_name
-        # Use CPU for compatibility (can be changed to "cuda" on NVIDIA GPUs)
-        self.model = WhisperModel(model_name, device="cpu", compute_type="int8")
+
+        # Optimize for Apple Silicon (M1/M2/M3/M4) using CoreML/Metal acceleration
+        platform_info = get_platform_info()
+        if platform_info.is_apple_silicon:
+            # For Apple Silicon: use auto device detection and default compute type
+            # This enables CoreML/Metal acceleration for significant speedup
+            self.model = WhisperModel(
+                model_name,
+                device="auto",
+                compute_type="default",
+                num_workers=4,  # Parallel processing for faster inference
+            )
+        else:
+            # For other platforms: use CPU with int8 quantization for compatibility
+            self.model = WhisperModel(model_name, device="cpu", compute_type="int8")
 
     def transcribe(
         self, audio: NDArray[np.float32], language: str | None = None
