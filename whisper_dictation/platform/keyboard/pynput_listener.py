@@ -49,45 +49,6 @@ class PynputKeyboardListener(KeyboardListener):
         return self._listener is not None
 
 
-class PynputDoubleCommandListener(KeyboardListener):
-    """
-    Keyboard listener for double Right-Command key on macOS.
-
-    Double-press Right-Cmd to start, single-press to stop.
-    """
-
-    def __init__(self):
-        """Initialize double-command keyboard listener."""
-        self._listener: keyboard.Listener | None = None
-        self._on_hotkey: Callable[[], None] | None = None
-        self._key_handler: _DoubleCommandHandler | None = None
-
-    def start(self, on_hotkey: Callable[[], None]) -> None:
-        """Start listening for keyboard events."""
-        if self._listener is not None:
-            raise RuntimeError("Listener is already running")
-
-        self._on_hotkey = on_hotkey
-        self._key_handler = _DoubleCommandHandler(on_hotkey)
-
-        self._listener = keyboard.Listener(
-            on_press=self._key_handler.on_key_press,
-            on_release=self._key_handler.on_key_release,
-        )
-        self._listener.start()
-
-    def stop(self) -> None:
-        """Stop listening for keyboard events."""
-        if self._listener is not None:
-            self._listener.stop()
-            self._listener = None
-            self._key_handler = None
-
-    def is_running(self) -> bool:
-        """Check if the listener is currently running."""
-        return self._listener is not None
-
-
 class _KeyComboHandler:
     """Internal handler for key combination events."""
 
@@ -149,40 +110,3 @@ class _KeyComboHandler:
         if not self.key1_pressed or not self.key2_pressed:
             self.combo_triggered = False
             self.last_trigger_time = 0
-
-
-class _DoubleCommandHandler:
-    """Internal handler for double Right-Command key events."""
-
-    def __init__(self, callback: Callable[[], None]):
-        """
-        Initialize double command handler.
-
-        Args:
-            callback: Callback function to call when double-command is detected
-        """
-        self.callback = callback
-        self.key = keyboard.Key.cmd_r
-        self.last_press_time = 0
-        self.is_recording = False
-
-    def on_key_press(self, key):
-        """Handle key press events."""
-        if key == self.key:
-            current_time = time.time()
-
-            if not self.is_recording:
-                # Check for double press (within 0.5 seconds)
-                if current_time - self.last_press_time < 0.5:
-                    self.is_recording = True
-                    self.callback()
-            else:
-                # Single press to stop
-                self.is_recording = False
-                self.callback()
-
-            self.last_press_time = current_time
-
-    def on_key_release(self, key):
-        """Handle key release events."""
-        pass

@@ -1,8 +1,6 @@
 """Main entry point for the whisper dictation application."""
 
 import sys
-import threading
-from collections.abc import Callable
 
 from .cli import parse_arguments
 from .config import create_default_config, validate_config
@@ -11,7 +9,7 @@ from .core.text_processor import normalize_text
 from .core.transcriber import StandardWhisperTranscriber, WhisperTranscriber
 from .platform.keyboard.base import KeyboardListener
 from .platform.text_injection.base import TextInjector
-from .ui.base import DictationUI
+from .ui.cli_ui import CLIUI
 
 
 def create_transcriber(config) -> WhisperTranscriber:
@@ -52,7 +50,7 @@ def create_text_injector(config) -> TextInjector:
 
 def create_keyboard_listener(config) -> KeyboardListener:
     """
-    Create keyboard listener based on platform and configuration.
+    Create keyboard listener based on platform.
 
     Args:
         config: DictationConfig instance
@@ -66,61 +64,10 @@ def create_keyboard_listener(config) -> KeyboardListener:
         print(f"[i] Using evdev keyboard listener (hotkey: {config.hotkey})")
         return EvdevKeyboardListener(config.hotkey)
     else:
-        from .platform.keyboard.pynput_listener import (
-            PynputDoubleCommandListener,
-            PynputKeyboardListener,
-        )
+        from .platform.keyboard.pynput_listener import PynputKeyboardListener
 
-        if config.use_double_cmd:
-            print("[i] Using double Right-Command keyboard listener")
-            return PynputDoubleCommandListener()
-        else:
-            print(f"[i] Using pynput keyboard listener (hotkey: {config.hotkey})")
-            return PynputKeyboardListener(config.hotkey)
-
-
-def create_ui(
-    config,
-    keyboard_listener: KeyboardListener,
-    recorder: Recorder,
-    on_start_recording: Callable[[], None],
-    on_stop_recording: Callable[[], None],
-) -> DictationUI:
-    """
-    Create UI based on configuration.
-
-    Args:
-        config: DictationConfig instance
-        keyboard_listener: Keyboard listener instance
-        recorder: Recorder instance
-        on_start_recording: Callback when recording starts
-        on_stop_recording: Callback when recording stops
-
-    Returns:
-        DictationUI: UI instance
-    """
-    if config.ui_mode == "gui":
-        from .ui.macos_menubar import MacOSMenuBarUI
-
-        print("[i] Using macOS menu bar GUI")
-        return MacOSMenuBarUI(
-            on_start_recording=on_start_recording,
-            on_stop_recording=on_stop_recording,
-            languages=config.languages,
-            initial_language=config.default_language,
-        )
-    else:
-        from .ui.cli_ui import CLIUI
-
-        hotkey_desc = "double Right-Cmd" if config.use_double_cmd else config.hotkey
-        print("[i] Using CLI interface")
-        return CLIUI(
-            keyboard_listener=keyboard_listener,
-            recorder=recorder,
-            hotkey_description=hotkey_desc,
-            on_start_recording=on_start_recording,
-            on_stop_recording=on_stop_recording,
-        )
+        print(f"[i] Using pynput keyboard listener (hotkey: {config.hotkey})")
+        return PynputKeyboardListener(config.hotkey)
 
 
 class DictationApp:
@@ -145,13 +92,13 @@ class DictationApp:
         )
         self.keyboard_listener = create_keyboard_listener(config)
 
-        # Create UI
-        self.ui = create_ui(
-            config,
-            self.keyboard_listener,
-            self.recorder,
-            self.on_start_recording,
-            self.on_stop_recording,
+        # Create CLI UI
+        self.ui = CLIUI(
+            keyboard_listener=self.keyboard_listener,
+            recorder=self.recorder,
+            hotkey_description=config.hotkey,
+            on_start_recording=self.on_start_recording,
+            on_stop_recording=self.on_stop_recording,
         )
 
         self.current_language = config.default_language
@@ -164,10 +111,6 @@ class DictationApp:
 
         self.is_recording = True
         self.ui.on_recording_start()
-
-        # Get language from UI if it's a GUI
-        if hasattr(self.ui, "get_current_language"):
-            self.current_language = self.ui.get_current_language()
 
         # Start recording with completion callback
         self.recorder.start(self.on_recording_complete)
@@ -210,85 +153,6 @@ class DictationApp:
 
     def run(self) -> None:
         """Run the application."""
-        # For GUI mode, the keyboard listener needs to be started separately
-        # because rumps.App.run() is blocking
-        if self.config.ui_mode == "gui":
-            import time
-
-            from pynput import keyboard
-
-            # Set up thread exception handler to catch listener errors
-            listener_error = []
-
-            def thread_exception_handler(args):
-                """Catch exceptions from keyboard listener thread."""
-                listener_error.append(args.exc_value)
-
-            original_excepthook = threading.excepthook
-            threading.excepthook = thread_exception_handler
-
-            # Create hotkey handler
-            def toggle_handler():
-                if hasattr(self.ui, "toggle_recording"):
-                    self.ui.toggle_recording()
-
-            try:
-                # Start keyboard listener
-                self.keyboard_listener.start(toggle_handler)
-
-                # Start listener thread
-                listener = keyboard.Listener(
-                    on_press=lambda key: None, on_release=lambda key: None
-                )
-                listener.start()
-
-                # Give the thread time to start and check for errors
-                time.sleep(0.5)
-                if listener_error:
-                    raise listener_error[0]
-                if not listener.running:
-                    raise RuntimeError("Keyboard listener failed to start")
-
-            except Exception as e:
-                # Check if this is the PyObjC/accessibility error
-                error_type = type(e).__name__
-                is_pyobjc_error = (
-                    "KeyError" in error_type or "AXIsProcessTrusted" in str(e)
-                )
-
-                error_msg = "\n[!] Failed to start keyboard listener.\n\n"
-                if is_pyobjc_error:
-                    error_msg += (
-                        "This appears to be a PyObjC compatibility issue with your macOS version.\n\n"
-                        "To fix:\n"
-                        "  • Try updating PyObjC packages:\n"
-                        "    uv pip install --upgrade pyobjc-core pyobjc-framework-Quartz\n\n"
-                        "  • Ensure accessibility permissions are granted:\n"
-                        "    System Settings → Privacy & Security → Accessibility\n"
-                        "    Add and enable your terminal app (Terminal.app, iTerm2, etc.)\n\n"
-                    )
-                else:
-                    error_msg += (
-                        "This is likely due to accessibility permissions not being granted.\n\n"
-                        "To fix:\n"
-                        "  • Grant accessibility permissions:\n"
-                        "    System Settings → Privacy & Security → Accessibility\n"
-                        "    Add and enable your terminal app (Terminal.app, iTerm2, etc.)\n\n"
-                    )
-
-                error_msg += (
-                    "  • Try CLI mode instead (no accessibility permissions required):\n"
-                    "    whisper-dictation --no-gui\n\n"
-                    f"Technical details: {error_type}: {e}"
-                )
-                print(error_msg, file=sys.stderr)
-                threading.excepthook = original_excepthook
-                sys.exit(1)
-
-            # Restore original exception handler
-            threading.excepthook = original_excepthook
-
-        # Run UI (blocking)
         self.ui.run()
 
 
@@ -302,10 +166,8 @@ def main() -> None:
         config = create_default_config(
             model=args.model,
             hotkey=args.hotkey,
-            use_double_cmd=args.double_cmd,
             languages=args.language,
             max_time=args.max_time,
-            no_gui=args.no_gui,
         )
 
         # Validate configuration

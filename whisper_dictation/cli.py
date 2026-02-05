@@ -3,8 +3,6 @@
 import argparse
 import sys
 
-from .platform.detection import get_platform_info
-
 
 def parse_arguments() -> argparse.Namespace:
     """
@@ -13,8 +11,6 @@ def parse_arguments() -> argparse.Namespace:
     Returns:
         argparse.Namespace: Parsed arguments
     """
-    platform = get_platform_info()
-
     parser = argparse.ArgumentParser(
         description="Cross-platform multilingual dictation using OpenAI Whisper",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -31,9 +27,6 @@ Examples:
 
   # Custom hotkey
   whisper-dictation -k ctrl+shift
-
-  # Force CLI mode on macOS
-  whisper-dictation --no-gui
         """,
     )
 
@@ -63,15 +56,6 @@ Examples:
     )
 
     parser.add_argument(
-        "--double-cmd",
-        action="store_true",
-        help=(
-            "macOS only: Use double Right-Command key press to toggle recording "
-            "(double-press to start, single-press to stop). Ignores --hotkey."
-        ),
-    )
-
-    parser.add_argument(
         "-l",
         "--language",
         type=str,
@@ -79,8 +63,7 @@ Examples:
         help=(
             "Language code(s) for transcription (e.g., 'en', 'es', 'fr'). "
             "Multiple languages can be comma-separated (e.g., 'en,es,fr'). "
-            "If multiple languages are specified, you can switch between them in the GUI. "
-            "For CLI mode, the first language is used. "
+            "The first language is used for transcription. "
             "Default: 'en' (English). "
             "See https://github.com/openai/whisper for supported languages."
         ),
@@ -92,12 +75,6 @@ Examples:
         type=float,
         default=600.0,
         help="Maximum recording time in seconds. Default: 600.0",
-    )
-
-    parser.add_argument(
-        "--no-gui",
-        action="store_true",
-        help="Force CLI mode (disable macOS menu bar GUI)",
     )
 
     parser.add_argument(
@@ -121,9 +98,5 @@ Examples:
     # Parse language list
     if args.language:
         args.language = [lang.strip() for lang in args.language.split(",")]
-
-    # Validate double-cmd is macOS only
-    if args.double_cmd and not platform.is_macos:
-        parser.error("--double-cmd is only supported on macOS")
 
     return args

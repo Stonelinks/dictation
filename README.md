@@ -1,4 +1,4 @@
-# 🎤 Whisper Dictation
+# Whisper Dictation
 
 **Hands-free dictation that just works.** Press a hotkey, speak naturally, and watch your words appear in any application—no cloud, no latency, complete privacy.
 
@@ -10,35 +10,21 @@ Powered by OpenAI's Whisper AI model running locally on your machine.
 
 ---
 
-## ✨ Features
+## Features
 
-- 🌍 **100+ Languages** - Supports every language Whisper knows (English, Spanish, French, Chinese, Japanese, and [many more](https://github.com/openai/whisper#available-models-and-languages))
-- 🖥️ **Cross-Platform** - macOS (Apple Silicon optimized), Linux (X11 & Wayland)
-- 🎯 **Universal Input** - Works in any application: email, docs, chat, IDE, browser
-- 🔒 **100% Private** - All processing happens locally, no internet required
-- ⚡ **Real-Time** - Fast transcription with optimized models
-- 🎨 **Two Interfaces** - Native macOS menu bar app or lightweight CLI
-- ⌨️ **Smart Formatting** - Automatic punctuation, capitalization, and spacing
-- 🔧 **Flexible Controls** - Customizable hotkeys or double-Command gesture on macOS
-
----
-
-## 📋 Table of Contents
-
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [Usage Guide](#-usage-guide)
-- [Configuration](#-configuration)
-- [Platform-Specific Notes](#-platform-specific-notes)
-- [Troubleshooting](#-troubleshooting--faq)
-- [Development](#-development)
-- [License](#-license)
+- **100+ Languages** - Supports every language Whisper knows (English, Spanish, French, Chinese, Japanese, and [many more](https://github.com/openai/whisper#available-models-and-languages))
+- **Cross-Platform** - macOS (Apple Silicon optimized), Linux (X11 & Wayland)
+- **Universal Input** - Works in any application: email, docs, chat, IDE, browser
+- **100% Private** - All processing happens locally, no internet required
+- **Real-Time** - Fast transcription with optimized models
+- **Smart Formatting** - Automatic punctuation, capitalization, and spacing
+- **Customizable Hotkeys** - Configure your own key combinations
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### macOS (Menu Bar GUI)
+### macOS
 
 ```bash
 # Install dependencies
@@ -50,7 +36,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Clone and install
 git clone <repository-url>
 cd whisper-dictation
-uv sync --extra macos
+uv sync
 
 # Run!
 ./run.sh
@@ -58,7 +44,7 @@ uv sync --extra macos
 
 **Press `Cmd+Option` to start recording, speak, then press again to transcribe.**
 
-### Linux (CLI)
+### Linux
 
 ```bash
 # Install dependencies (Ubuntu/Debian)
@@ -88,19 +74,19 @@ uv sync --extra linux
 
 ---
 
-## 📦 Installation
+## Installation
 
 ### Prerequisites
 
 | Requirement | macOS | Linux (X11) | Linux (Wayland) |
 |------------|-------|-------------|-----------------|
-| Python 3.10-3.12 | ✅ | ✅ | ✅ |
-| [uv](https://docs.astral.sh/uv/) package manager | ✅ | ✅ | ✅ |
-| PortAudio | ✅ | ✅ | ✅ |
-| Microphone permission | ✅ | - | - |
-| Accessibility permission | ✅ | - | - |
-| `/dev/input/event*` access | - | ✅ | ✅ |
-| [ydotool](https://github.com/ReimuNotMoe/ydotool) | - | - | ✅ |
+| Python 3.10-3.12 | Yes | Yes | Yes |
+| [uv](https://docs.astral.sh/uv/) package manager | Yes | Yes | Yes |
+| PortAudio | Yes | Yes | Yes |
+| Microphone permission | Yes | - | - |
+| Accessibility permission | Yes | - | - |
+| `/dev/input/event*` access | - | Yes | Yes |
+| [ydotool](https://github.com/ReimuNotMoe/ydotool) | - | - | Yes |
 
 ### Step-by-Step Installation
 
@@ -125,7 +111,7 @@ uv sync --extra linux
 
 4. **Install Python dependencies**
    ```bash
-   uv sync --extra macos
+   uv sync
    ```
 
 5. **Grant permissions when prompted**
@@ -154,7 +140,7 @@ uv sync --extra linux
    ```bash
    sudo usermod -a -G input $USER
    ```
-   ⚠️ **Important:** Log out and back in for this to take effect
+   **Important:** Log out and back in for this to take effect
 
 3. **Install uv package manager**
    ```bash
@@ -203,7 +189,7 @@ uv sync --extra linux
    ```bash
    sudo usermod -a -G input $USER
    ```
-   ⚠️ **Important:** Log out and back in for this to take effect
+   **Important:** Log out and back in for this to take effect
 
 4. **Install uv package manager**
    ```bash
@@ -232,19 +218,18 @@ uv sync --extra linux
 
 ---
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Basic Usage
 
-**Default mode** (platform-aware):
 ```bash
 ./run.sh
 # or
 uv run whisper-dictation
 ```
 
-- **macOS**: Launches menu bar GUI with `Cmd+Option` hotkey
-- **Linux**: Launches CLI with `Ctrl+Alt` hotkey
+- **macOS**: Uses `Cmd+Option` hotkey
+- **Linux**: Uses `Ctrl+Alt` hotkey
 
 ### Command-Line Options
 
@@ -252,32 +237,25 @@ uv run whisper-dictation
 whisper-dictation [OPTIONS]
 ```
 
-**Common Options:**
-
 | Option | Description | Example |
 |--------|-------------|---------|
 | `-m, --model` | Whisper model to use | `-m large-v3` |
 | `-l, --language` | Language(s) for transcription | `-l en,es,fr` |
 | `-k, --hotkey` | Custom hotkey combination | `-k ctrl+shift` |
 | `-t, --max-time` | Max recording time (seconds) | `-t 60` |
-| `--double-cmd` | Use double Right-Cmd (macOS) | `--double-cmd` |
-| `--no-gui` | Force CLI mode (disable GUI) | `--no-gui` |
 | `--list-models` | Show available models | `--list-models` |
 
-**Real-World Examples:**
+**Examples:**
 
 ```bash
 # English transcription with large model
 uv run whisper-dictation -m large-v3 -l en
 
-# Multilingual with language switching (GUI)
+# Multilingual support
 uv run whisper-dictation -l en,es,fr,de
 
 # Short recordings with custom hotkey
 uv run whisper-dictation -t 30 -k cmd_l+shift
-
-# CLI mode on macOS with double-Command
-uv run whisper-dictation --no-gui --double-cmd
 
 # Fast model for quick notes
 uv run whisper-dictation -m turbo -l en
@@ -285,19 +263,19 @@ uv run whisper-dictation -m turbo -l en
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Choosing a Model
 
 | Model | Size | Speed | Quality | Best For |
 |-------|------|-------|---------|----------|
-| `tiny` | ~75MB | ⚡⚡⚡⚡⚡ | ⭐⭐ | Quick notes, testing |
-| `base` | ~150MB | ⚡⚡⚡⚡ | ⭐⭐⭐ | Casual dictation |
-| `small` | ~500MB | ⚡⚡⚡ | ⭐⭐⭐⭐ | General use |
-| `medium` | ~1.5GB | ⚡⚡ | ⭐⭐⭐⭐⭐ | Professional work |
-| `large-v3` | ~3GB | ⚡ | ⭐⭐⭐⭐⭐ | Maximum accuracy |
-| `large-v3-turbo` | ~1.6GB | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | **Recommended** (default) |
-| `turbo` | ~800MB | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | Speed + quality balance |
+| `tiny` | ~75MB | Very Fast | Fair | Quick notes, testing |
+| `base` | ~150MB | Fast | Good | Casual dictation |
+| `small` | ~500MB | Medium | Very Good | General use |
+| `medium` | ~1.5GB | Slow | Excellent | Professional work |
+| `large-v3` | ~3GB | Slowest | Best | Maximum accuracy |
+| `large-v3-turbo` | ~1.6GB | Medium | Excellent | **Recommended** (default) |
+| `turbo` | ~800MB | Fast | Very Good | Speed + quality balance |
 
 **Pro tip:** Add `.en` suffix for English-only models (e.g., `base.en`, `small.en`) for better English performance.
 
@@ -306,27 +284,24 @@ uv run whisper-dictation -m turbo -l en
 Whisper supports 100+ languages. Specify with `-l`:
 
 ```bash
-# Single language (automatic detection disabled)
+# Single language
 whisper-dictation -l en
 
-# Multiple languages (switch in GUI, first used in CLI)
-whisper-dictation -l en,es,fr,de
+# Multiple languages (first is used for transcription)
+whisper-dictation -l en,es,fr
 ```
 
 **Popular Language Codes:**
-`en` (English) • `es` (Spanish) • `fr` (French) • `de` (German) • `it` (Italian) • `pt` (Portuguese) • `ru` (Russian) • `ja` (Japanese) • `zh` (Chinese) • `ko` (Korean) • `ar` (Arabic) • `hi` (Hindi) • `nl` (Dutch) • `pl` (Polish) • `tr` (Turkish)
+`en` (English) • `es` (Spanish) • `fr` (French) • `de` (German) • `it` (Italian) • `pt` (Portuguese) • `ru` (Russian) • `ja` (Japanese) • `zh` (Chinese) • `ko` (Korean) • `ar` (Arabic) • `hi` (Hindi)
 
 [See full list →](https://github.com/openai/whisper#available-models-and-languages)
 
 ### Hotkey Customization
 
-Customize your recording trigger:
-
 ```bash
 # macOS examples
 whisper-dictation -k cmd_l+alt           # Left Command + Option (default)
 whisper-dictation -k cmd_l+shift         # Left Command + Shift
-whisper-dictation --double-cmd           # Double Right-Command gesture
 
 # Linux examples
 whisper-dictation -k ctrl+alt            # Ctrl + Alt (default)
@@ -336,27 +311,12 @@ whisper-dictation -k super+space         # Super/Windows + Space
 
 **Key names:** `ctrl`, `alt`, `shift`, `cmd_l`, `cmd_r`, `super`, `space`, letters, numbers
 
-### macOS Menu Bar GUI
-
-The native macOS interface provides a polished experience:
-
-- **Menu Bar Icon** (⏯) - Always accessible, unobtrusive
-- **Recording Indicator** (🔴) - Shows live timer when active
-- **Language Switcher** - Quick language selection (when multiple configured)
-- **Click or Hotkey** - Flexible control
-
-**Workflow:**
-1. Press your hotkey (default: `Cmd+Option`) or click "Start Recording"
-2. Speak naturally
-3. Press hotkey again or click "Stop Recording"
-4. Text appears instantly in your active window
-
 ---
 
-## 🖥️ Platform-Specific Notes
+## Platform-Specific Notes
 
 <details>
-<summary><b>macOS - Permissions & GUI</b></summary>
+<summary><b>macOS - Permissions</b></summary>
 
 ### Required Permissions
 
@@ -369,28 +329,6 @@ Both permissions are required. The app will prompt you on first run.
 2. **Accessibility Access** (for keyboard control)
    - System Settings → Privacy & Security → Accessibility
    - Enable your terminal app
-
-### GUI Features
-
-- Native macOS menu bar integration
-- Recording timer with live countdown
-- Language switching dropdown (multi-language mode)
-- System notifications for errors
-
-### Hotkey Options
-
-| Option | Command | When to Use |
-|--------|---------|-------------|
-| Default | `Cmd+Option` | Most users |
-| Double-Cmd | `--double-cmd` | Fewer key conflicts |
-| Custom | `-k cmd_l+shift` | Personal preference |
-
-### Troubleshooting
-
-If keyboard listener fails to start, try:
-1. Verify accessibility permissions are granted
-2. Restart your terminal app
-3. Try CLI mode: `whisper-dictation --no-gui`
 
 </details>
 
@@ -411,18 +349,12 @@ ls -l /dev/input/event*
 sudo usermod -a -G input $USER
 ```
 
-**⚠️ Important:** Log out and back in for changes to take effect.
+**Important:** Log out and back in for changes to take effect.
 
 **Verify it worked:**
 ```bash
 groups | grep input  # Should show "input" in the list
 ```
-
-### Default Settings
-
-- **Hotkey:** `Ctrl+Alt` (customizable with `-k`)
-- **Text injection:** pynput (native Python implementation)
-- **UI:** CLI only
 
 </details>
 
@@ -467,20 +399,14 @@ ydotool type "Hello, world!"
 
 If this doesn't work, ydotool service isn't running properly.
 
-### Default Settings
-
-- **Hotkey:** `Ctrl+Alt` (customizable with `-k`)
-- **Text injection:** ydotool (system service)
-- **UI:** CLI only
-
 </details>
 
 ---
 
-## 🔧 Troubleshooting & FAQ
+## Troubleshooting
 
 <details>
-<summary><b>❌ "No keyboard devices found" (Linux)</b></summary>
+<summary><b>"No keyboard devices found" (Linux)</b></summary>
 
 **Problem:** You don't have permission to read keyboard input devices.
 
@@ -497,7 +423,7 @@ groups | grep input
 </details>
 
 <details>
-<summary><b>❌ "ydotool is not installed" (Linux Wayland)</b></summary>
+<summary><b>"ydotool is not installed" (Linux Wayland)</b></summary>
 
 **Problem:** ydotool is required for text injection on Wayland but isn't installed.
 
@@ -517,7 +443,7 @@ systemctl status ydotool
 </details>
 
 <details>
-<summary><b>❌ "OSError: [Errno -9996] Invalid input device"</b></summary>
+<summary><b>"OSError: [Errno -9996] Invalid input device"</b></summary>
 
 **Problem:** PortAudio cannot access your microphone.
 
@@ -543,7 +469,7 @@ sudo apt-get install portaudio19-dev
 </details>
 
 <details>
-<summary><b>❌ Text doesn't appear after transcription</b></summary>
+<summary><b>Text doesn't appear after transcription</b></summary>
 
 **Possible causes & solutions:**
 
@@ -568,7 +494,7 @@ sudo apt-get install portaudio19-dev
 </details>
 
 <details>
-<summary><b>❌ Poor transcription quality</b></summary>
+<summary><b>Poor transcription quality</b></summary>
 
 **Quick fixes:**
 
@@ -588,45 +514,10 @@ sudo apt-get install portaudio19-dev
    - Check microphone isn't too far from your mouth
    - Increase microphone input volume in system settings
 
-4. **Hardware check:**
-   ```bash
-   # macOS - test microphone
-   # System Settings → Sound → Input → speak and watch level meter
-
-   # Linux - test microphone
-   arecord -d 5 test.wav && aplay test.wav
-   ```
-
 </details>
 
 <details>
-<summary><b>❌ Keyboard listener fails to start (macOS)</b></summary>
-
-**Problem:** Error about accessibility permissions or PyObjC compatibility.
-
-**Solutions:**
-
-1. **Grant accessibility permissions**
-   - System Settings → Privacy & Security → Accessibility
-   - Add your terminal app (Terminal, iTerm2, etc.)
-   - Enable the checkbox
-   - Restart your terminal
-
-2. **Update PyObjC (if compatibility error)**
-   ```bash
-   uv pip install --upgrade pyobjc-core pyobjc-framework-Quartz
-   ```
-
-3. **Use CLI mode instead**
-   ```bash
-   whisper-dictation --no-gui
-   ```
-   CLI mode doesn't require accessibility permissions.
-
-</details>
-
-<details>
-<summary><b>❓ How do I change the recording hotkey?</b></summary>
+<summary><b>How do I change the recording hotkey?</b></summary>
 
 Use the `-k` or `--hotkey` flag:
 
@@ -649,7 +540,7 @@ whisper-dictation -k super+space
 </details>
 
 <details>
-<summary><b>❓ Which model should I use?</b></summary>
+<summary><b>Which model should I use?</b></summary>
 
 **Quick recommendations:**
 
@@ -664,7 +555,7 @@ whisper-dictation -k super+space
 </details>
 
 <details>
-<summary><b>❓ Can I use this offline?</b></summary>
+<summary><b>Can I use this offline?</b></summary>
 
 **Yes!** Everything runs locally:
 - First run downloads the Whisper model (~1.6GB for default)
@@ -675,7 +566,7 @@ whisper-dictation -k super+space
 </details>
 
 <details>
-<summary><b>❓ Does it work on Apple Silicon (M1/M2/M3)?</b></summary>
+<summary><b>Does it work on Apple Silicon (M1/M2/M3)?</b></summary>
 
 **Yes!** Optimized for Apple Silicon:
 - Automatically uses Metal acceleration
@@ -685,88 +576,15 @@ whisper-dictation -k super+space
 
 </details>
 
-<details>
-<summary><b>❓ How do I update to a newer version?</b></summary>
-
-```bash
-# Update the repository
-git pull
-
-# Update dependencies
-uv sync --extra macos  # or --extra linux
-
-# Models update automatically when available
-```
-
-</details>
-
 ---
 
-## 🏗️ Architecture
-
-The project uses a clean **factory pattern** with automatic platform detection:
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Platform Detection                     │
-│            (macOS / Linux X11 / Linux Wayland)          │
-└────────────────────┬────────────────────────────────────┘
-                     │
-        ┌────────────┴───────────┐
-        │   Factory Functions     │
-        │  (Runtime Selection)    │
-        └────────────┬───────────┘
-                     │
-     ┌───────────────┼───────────────┐
-     │               │               │
-     ▼               ▼               ▼
-┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Whisper │    │Keyboard │    │  Text   │
-│Transcript│   │Listener │    │Injector │
-└─────────┘    └─────────┘    └─────────┘
-     │               │               │
-     └───────────────┴───────────────┘
-                     │
-                     ▼
-            ┌────────────────┐
-            │   UI Layer     │
-            │  (GUI / CLI)   │
-            └────────────────┘
-```
-
-### Key Components
-
-| Module | Purpose | Platform-Specific |
-|--------|---------|-------------------|
-| `core/transcriber.py` | Whisper AI transcription | ✅ (Apple Silicon optimized) |
-| `core/recorder.py` | Audio capture via PyAudio | No |
-| `core/text_processor.py` | Smart text normalization | No |
-| `platform/detection.py` | Runtime platform detection | ✅ |
-| `platform/keyboard/` | Global hotkey listeners | ✅ (evdev/pynput) |
-| `platform/text_injection/` | Text automation | ✅ (ydotool/pynput) |
-| `ui/macos_menubar.py` | Native macOS GUI | ✅ (macOS only) |
-| `ui/cli_ui.py` | CLI interface | No |
-| `config.py` | Configuration management | ✅ (platform defaults) |
-
-### Design Principles
-
-- **Platform Abstraction**: Common interfaces, platform-specific implementations
-- **Factory Pattern**: Runtime component selection based on platform
-- **Separation of Concerns**: UI, audio, transcription, and I/O are decoupled
-- **Fail-Fast Validation**: Configuration validated at startup
-
----
-
-## 👨‍💻 Development
+## Development
 
 ### Setup Development Environment
 
 ```bash
 # Install all dependencies including dev tools
 uv sync --all-extras
-
-# Install git hooks (if you add them)
-# pre-commit install
 ```
 
 ### Running & Testing
@@ -776,16 +594,13 @@ uv sync --all-extras
 uv run python -m whisper_dictation
 
 # Run with specific options
-uv run python -m whisper_dictation -m base.en -l en --no-gui
+uv run python -m whisper_dictation -m base.en -l en
 
 # Run tests
 uv run pytest
 
 # Run tests with coverage
 uv run pytest --cov=whisper_dictation --cov-report=html
-
-# Type checking (if you add it)
-# uv run mypy whisper_dictation
 ```
 
 ### Code Quality
@@ -820,48 +635,29 @@ whisper-dictation/
 │   │   ├── keyboard/          # Hotkey listeners
 │   │   │   ├── base.py
 │   │   │   ├── evdev_listener.py    # Linux
-│   │   │   └── pynput_listener.py   # macOS
+│   │   │   └── pynput_listener.py   # macOS/X11
 │   │   └── text_injection/    # Text automation
 │   │       ├── base.py
 │   │       ├── pynput_injector.py   # macOS/X11
 │   │       └── ydotool_injector.py  # Wayland
-│   └── ui/                    # User interfaces
+│   └── ui/                    # User interface
 │       ├── base.py
-│       ├── cli_ui.py          # CLI interface
-│       └── macos_menubar.py   # macOS GUI
+│       └── cli_ui.py          # CLI interface
 ├── tests/                     # Test suite
 ├── pyproject.toml            # Project config
 ├── format.sh                 # Formatting script
 └── README.md                 # This file
 ```
 
-### Contributing
-
-Contributions are welcome! Areas for improvement:
-
-- [ ] Windows support
-- [ ] System tray icon for Linux
-- [ ] Configuration file support (YAML/TOML)
-- [ ] Keyboard shortcut recorder
-- [ ] Model download progress bar
-- [ ] Clipboard integration option
-- [ ] Audio feedback/beep on start/stop
-- [ ] Pause/resume recording
-- [ ] Multiple audio input device support
-
-Please open an issue before starting major work.
-
 ---
 
-## 📄 License
+## License
 
 MIT License - See [LICENSE](LICENSE) file for details.
 
-**TLDR:** Free for personal and commercial use. No warranty.
-
 ---
 
-## 🙏 Credits & Acknowledgments
+## Credits
 
 ### Core Technologies
 
@@ -873,73 +669,7 @@ MIT License - See [LICENSE](LICENSE) file for details.
 | [pynput](https://github.com/moses-palmer/pynput) | Keyboard/mouse control | LGPLv3 |
 | [evdev](https://python-evdev.readthedocs.io/) | Linux input device access | BSD |
 | [ydotool](https://github.com/ReimuNotMoe/ydotool) | Wayland automation | MIT |
-| [rumps](https://github.com/jaredks/rumps) | macOS menu bar apps | BSD |
-
-### Acknowledgments
-
-This project builds upon and unifies earlier dictation implementations, incorporating lessons learned from real-world usage across multiple platforms. Thanks to the open-source community for making powerful tools accessible to everyone.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Here's how you can help:
-
-### Reporting Issues
-
-Found a bug or have a suggestion?
-
-1. Check [existing issues](https://github.com/yourusername/whisper-dictation/issues)
-2. Open a new issue with:
-   - Clear description
-   - Steps to reproduce (for bugs)
-   - Your platform and Python version
-   - Expected vs actual behavior
-
-### Contributing Code
-
-1. **Fork the repository**
-2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Make your changes**
-   - Follow existing code style
-   - Run `./format.sh` before committing
-   - Add tests if applicable
-4. **Commit your changes** (`git commit -m 'Add amazing feature'`)
-5. **Push to your fork** (`git push origin feature/amazing-feature`)
-6. **Open a Pull Request**
-
-### Development Priorities
-
-**High Priority:**
-- 🪟 Windows support
-- 📊 Better error messages and logging
-- ⚙️ Configuration file support
-
-**Medium Priority:**
-- 🔔 Audio feedback on recording start/stop
-- ⏸️ Pause/resume recording
-- 📋 Clipboard integration option
-
-**Low Priority:**
-- 🎨 Linux system tray icon
-- 🎤 Multiple audio device support
-- 📸 Keyboard shortcut recorder UI
-
----
-
-## 📞 Support
-
-- 📖 **Documentation**: You're reading it!
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/yourusername/whisper-dictation/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/yourusername/whisper-dictation/discussions)
-- ⭐ **Star this repo** if you find it useful!
-
----
-
-## 🌟 Star History
-
-If this project helped you, consider giving it a star ⭐ on GitHub!
-
----
-
-**Made with ❤️ for the open-source community**
+**Made with care for the open-source community**

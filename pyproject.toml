@@ -27,12 +27,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-macos = [
-    "rumps>=0.4.0",
-    "pyobjc-core>=12.1",
-    "pyobjc-framework-quartz>=12.1",
-    "pyobjc-framework-cocoa>=12.1",
-]
 linux = [
     "evdev>=1.6.0",
 ]

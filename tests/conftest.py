@@ -73,13 +73,11 @@ def default_macos_config(mock_macos_platform):
     return DictationConfig(
         model_name="large-v3-turbo",
         hotkey="cmd_l+alt",
-        use_double_cmd=False,
         languages=None,
         default_language=None,
         max_recording_time=30.0,
         sample_rate=16000,
         frames_per_buffer=1024,
-        ui_mode="cli",
         platform=mock_macos_platform,
     )
 
@@ -90,13 +88,11 @@ def default_linux_config(mock_linux_x11_platform):
     return DictationConfig(
         model_name="large-v3-turbo",
         hotkey="ctrl+alt",
-        use_double_cmd=False,
         languages=None,
         default_language=None,
         max_recording_time=30.0,
         sample_rate=16000,
         frames_per_buffer=1024,
-        ui_mode="cli",
         platform=mock_linux_x11_platform,
     )
 

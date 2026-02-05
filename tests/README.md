@@ -155,14 +155,13 @@ Tests for platform detection covering:
 Tests for configuration management covering:
 - Default configuration for each platform
 - Custom parameters (model, hotkey, languages)
-- Validation rules (GUI mode, English-only models)
+- Validation rules (English-only models)
 - Dependency warnings (ydotool, evdev)
 
 ### test_pynput_listener.py (19 tests)
 Tests for keyboard listeners covering:
 - Listener lifecycle (start/stop/is_running)
 - Key combination parsing and detection
-- Double-press detection for double-command mode
 - Callback triggering
 - State tracking
 
@@ -211,9 +210,7 @@ Mocked dependencies:
 
 1. **evdev tests on macOS**: The evdev-specific tests may show errors on macOS since evdev is a Linux-only library. These tests are marked with `@pytest.mark.linux` and can be skipped on non-Linux platforms.
 
-2. **GUI tests excluded**: UI modules (cli_ui, macos_menubar) are not tested in this suite as they require more complex integration testing.
-
-3. **Time-based tests**: Some tests involving time.time() mocking (like double-command detection) may be flaky depending on execution speed.
+2. **CLI UI tests excluded**: The cli_ui module is not tested in this suite as it requires more complex integration testing.
 
 ### Migration from Manual Testing
 
