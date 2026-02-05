@@ -1,28 +1,28 @@
 """Integration tests for DictationApp."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from whisper_dictation.__main__ import (
+from dictation.__main__ import (
     DictationApp,
     create_keyboard_listener,
     create_text_injector,
     create_transcriber,
 )
-from whisper_dictation.config import DictationConfig
+from dictation.config import DictationConfig
 
 
 @pytest.mark.integration
 class TestCreateTranscriber:
     """Tests for create_transcriber factory function."""
 
-    def test_create_transcriber(self, default_macos_config, mock_whisper_model):
+    def test_create_transcriber(self, default_linux_config, mock_qwen_asr):
         """Test creating a transcriber."""
-        transcriber = create_transcriber(default_macos_config)
+        transcriber = create_transcriber(default_linux_config)
 
         assert transcriber is not None
-        assert transcriber.get_model_name() == "large-v3-turbo"
+        assert transcriber.get_model_name() == "Qwen/Qwen3-ASR-0.6B"
 
 
 @pytest.mark.integration
@@ -56,7 +56,7 @@ class TestCreateTextInjector:
         mock_which.return_value = "/usr/bin/ydotool"
 
         config = DictationConfig(
-            model_name="large-v3-turbo",
+            model_name="Qwen/Qwen3-ASR-0.6B",
             hotkey="ctrl+alt",
             languages=None,
             default_language=None,
@@ -89,9 +89,7 @@ class TestCreateKeyboardListener:
     )
     def test_create_evdev_listener_on_linux(self, default_linux_config, mock_evdev):
         """Test creating evdev listener on Linux."""
-        with patch(
-            "whisper_dictation.platform.keyboard.evdev_listener.evdev", mock_evdev
-        ):
+        with patch("dictation.platform.keyboard.evdev_listener.evdev", mock_evdev):
             listener = create_keyboard_listener(default_linux_config)
 
             assert listener is not None
@@ -106,7 +104,7 @@ class TestDictationAppInitialization:
     def test_initialization(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
     ):
@@ -124,7 +122,7 @@ class TestDictationAppInitialization:
     def test_initialization_creates_components(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
     ):
@@ -132,7 +130,7 @@ class TestDictationAppInitialization:
         app = DictationApp(default_macos_config)
 
         # Verify transcriber was created
-        assert app.transcriber.get_model_name() == "large-v3-turbo"
+        assert app.transcriber.get_model_name() == "Qwen/Qwen3-ASR-0.6B"
 
         # Verify recorder was created with correct settings
         assert app.recorder.sample_rate == 16000
@@ -148,7 +146,7 @@ class TestDictationAppRecordingWorkflow:
     def test_on_start_recording(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         mock_pyaudio,
@@ -164,7 +162,7 @@ class TestDictationAppRecordingWorkflow:
     def test_on_stop_recording(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         mock_pyaudio,
@@ -181,7 +179,7 @@ class TestDictationAppRecordingWorkflow:
     def test_on_start_recording_when_already_recording(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         mock_pyaudio,
@@ -199,25 +197,19 @@ class TestDictationAppRecordingWorkflow:
     def test_on_recording_complete_success(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         sample_audio,
     ):
         """Test successful recording completion workflow."""
-        # Configure mock transcriber
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [MagicMock(text="Test transcription")],
-            MagicMock(),
-        )
-
         app = DictationApp(default_macos_config)
 
         # Simulate recording completion
         app.on_recording_complete(sample_audio)
 
         # Verify transcription was called
-        mock_whisper_model["instance"].transcribe.assert_called_once()
+        mock_qwen_asr["instance"].transcribe.assert_called_once()
 
         # Verify text was injected
         mock_pynput_controller["instance"].type.assert_called()
@@ -225,14 +217,14 @@ class TestDictationAppRecordingWorkflow:
     def test_on_recording_complete_empty_text(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         sample_audio,
     ):
         """Test recording completion with empty transcription."""
         # Configure mock to return empty text
-        mock_whisper_model["instance"].transcribe.return_value = ([], MagicMock())
+        mock_qwen_asr["result"].text = ""
 
         app = DictationApp(default_macos_config)
 
@@ -245,14 +237,14 @@ class TestDictationAppRecordingWorkflow:
     def test_on_recording_complete_error_handling(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         sample_audio,
     ):
         """Test error handling during transcription."""
         # Configure mock to raise error
-        mock_whisper_model["instance"].transcribe.side_effect = Exception(
+        mock_qwen_asr["instance"].transcribe.side_effect = Exception(
             "Transcription failed"
         )
 
@@ -270,32 +262,22 @@ class TestDictationAppEndToEnd:
     def test_complete_workflow(
         self,
         default_macos_config,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         sample_audio,
     ):
-        """Test complete workflow: start recording → record → transcribe → inject."""
-        # Configure mock transcriber
-        seg1 = MagicMock()
-        seg1.text = "Hello"
-        seg2 = MagicMock()
-        seg2.text = "world"
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [seg1, seg2],
-            MagicMock(),
-        )
-
+        """Test complete workflow: start recording -> record -> transcribe -> inject."""
         app = DictationApp(default_macos_config)
 
-        # Workflow: start → complete
+        # Workflow: start -> complete
         app.on_start_recording()
         assert app.is_recording is True
 
         app.on_recording_complete(sample_audio)
 
         # Verify transcription was called
-        mock_whisper_model["instance"].transcribe.assert_called_once()
+        mock_qwen_asr["instance"].transcribe.assert_called_once()
 
         # Verify text was normalized and injected
         # "Hello world" should be injected character by character
@@ -305,14 +287,14 @@ class TestDictationAppEndToEnd:
     def test_workflow_with_language(
         self,
         mock_macos_platform,
-        mock_whisper_model,
+        mock_qwen_asr,
         mock_pynput_keyboard,
         mock_pynput_controller,
         sample_audio,
     ):
         """Test workflow with specific language."""
         config = DictationConfig(
-            model_name="large-v3-turbo",
+            model_name="Qwen/Qwen3-ASR-0.6B",
             hotkey="cmd_l+alt",
             languages=["es", "en"],
             default_language="es",
@@ -323,9 +305,7 @@ class TestDictationAppEndToEnd:
         )
 
         # Configure mock transcriber
-        seg = MagicMock()
-        seg.text = "Hola mundo"
-        mock_whisper_model["instance"].transcribe.return_value = ([seg], MagicMock())
+        mock_qwen_asr["result"].text = "Hola mundo"
 
         app = DictationApp(config)
 
@@ -336,5 +316,5 @@ class TestDictationAppEndToEnd:
         app.on_recording_complete(sample_audio)
 
         # Verify transcription was called with correct language
-        call_kwargs = mock_whisper_model["instance"].transcribe.call_args[1]
-        assert call_kwargs["language"] == "es"
+        call_kwargs = mock_qwen_asr["instance"].transcribe.call_args[1]
+        assert call_kwargs["language"] == "Spanish"

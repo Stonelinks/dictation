@@ -2,7 +2,7 @@
 
 import pytest
 
-from whisper_dictation.core.text_processor import normalize_text
+from dictation.core.text_processor import normalize_text
 
 
 @pytest.mark.unit

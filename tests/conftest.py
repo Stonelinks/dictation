@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from whisper_dictation.config import DictationConfig
-from whisper_dictation.platform.detection import PlatformInfo
+from dictation.config import DictationConfig
+from dictation.platform.detection import PlatformInfo
 
 
 # Platform Fixtures
@@ -71,7 +71,7 @@ def mock_linux_wayland_platform():
 def default_macos_config(mock_macos_platform):
     """Default configuration for macOS."""
     return DictationConfig(
-        model_name="large-v3-turbo",
+        model_name="Qwen/Qwen3-ASR-0.6B",
         hotkey="cmd_l+alt",
         languages=None,
         default_language=None,
@@ -86,7 +86,7 @@ def default_macos_config(mock_macos_platform):
 def default_linux_config(mock_linux_x11_platform):
     """Default configuration for Linux X11."""
     return DictationConfig(
-        model_name="large-v3-turbo",
+        model_name="Qwen/Qwen3-ASR-0.6B",
         hotkey="ctrl+alt",
         languages=None,
         default_language=None,
@@ -143,7 +143,7 @@ def short_audio():
 @pytest.fixture
 def mock_pyaudio(mocker):
     """Mock PyAudio for recorder tests."""
-    mock_pa_class = mocker.patch("whisper_dictation.core.recorder.pyaudio.PyAudio")
+    mock_pa_class = mocker.patch("dictation.core.recorder.pyaudio.PyAudio")
     mock_pa_instance = MagicMock()
     mock_pa_class.return_value = mock_pa_instance
 
@@ -162,40 +162,6 @@ def mock_pyaudio(mocker):
     }
 
 
-# Whisper Model Mocks
-
-
-@pytest.fixture
-def mock_whisper_model(mocker):
-    """Mock faster-whisper WhisperModel."""
-    # Mock the import first
-    mock_faster_whisper = mocker.MagicMock()
-    mocker.patch.dict("sys.modules", {"faster_whisper": mock_faster_whisper})
-
-    mock_model_class = MagicMock()
-    mock_faster_whisper.WhisperModel = mock_model_class
-
-    mock_model_instance = MagicMock()
-    mock_model_class.return_value = mock_model_instance
-
-    # Mock transcribe to return segments
-    mock_segment1 = MagicMock()
-    mock_segment1.text = "Hello"
-    mock_segment2 = MagicMock()
-    mock_segment2.text = "world"
-
-    mock_info = MagicMock()
-    mock_model_instance.transcribe.return_value = (
-        [mock_segment1, mock_segment2],
-        mock_info,
-    )
-
-    return {
-        "class": mock_model_class,
-        "instance": mock_model_instance,
-    }
-
-
 # Pynput Mocks
 
 
@@ -203,15 +169,13 @@ def mock_whisper_model(mocker):
 def mock_pynput_keyboard(mocker):
     """Mock pynput.keyboard for keyboard listener tests."""
     mock_listener_class = mocker.patch(
-        "whisper_dictation.platform.keyboard.pynput_listener.keyboard.Listener"
+        "dictation.platform.keyboard.pynput_listener.keyboard.Listener"
     )
     mock_listener_instance = MagicMock()
     mock_listener_class.return_value = mock_listener_instance
 
     # Mock the Key enum
-    mock_key = mocker.patch(
-        "whisper_dictation.platform.keyboard.pynput_listener.keyboard.Key"
-    )
+    mock_key = mocker.patch("dictation.platform.keyboard.pynput_listener.keyboard.Key")
     mock_key.ctrl = MagicMock()
     mock_key.alt = MagicMock()
     mock_key.cmd = MagicMock()
@@ -229,7 +193,7 @@ def mock_pynput_keyboard(mocker):
 def mock_pynput_controller(mocker):
     """Mock pynput.keyboard.Controller for text injection tests."""
     mock_controller_class = mocker.patch(
-        "whisper_dictation.platform.text_injection.pynput_injector.keyboard.Controller"
+        "dictation.platform.text_injection.pynput_injector.keyboard.Controller"
     )
     mock_controller_instance = MagicMock()
     mock_controller_class.return_value = mock_controller_instance
@@ -247,10 +211,10 @@ def mock_pynput_controller(mocker):
 def mock_evdev(mocker):
     """Mock evdev for Linux keyboard listener tests."""
     mock_input_device = mocker.patch(
-        "whisper_dictation.platform.keyboard.evdev_listener.evdev.InputDevice"
+        "dictation.platform.keyboard.evdev_listener.evdev.InputDevice"
     )
     mock_list_devices = mocker.patch(
-        "whisper_dictation.platform.keyboard.evdev_listener.evdev.list_devices"
+        "dictation.platform.keyboard.evdev_listener.evdev.list_devices"
     )
 
     mock_list_devices.return_value = ["/dev/input/event0", "/dev/input/event1"]
@@ -261,7 +225,7 @@ def mock_evdev(mocker):
 
     # Mock ecodes
     mock_ecodes = mocker.patch(
-        "whisper_dictation.platform.keyboard.evdev_listener.evdev.ecodes"
+        "dictation.platform.keyboard.evdev_listener.evdev.ecodes"
     )
     mock_ecodes.KEY_LEFTCTRL = 29
     mock_ecodes.KEY_LEFTALT = 56
@@ -304,3 +268,30 @@ def mock_platform_system(mocker):
 def mock_platform_machine(mocker):
     """Mock platform.machine() for platform detection tests."""
     return mocker.patch("platform.machine")
+
+
+# Qwen ASR Mocks
+
+
+@pytest.fixture
+def mock_qwen_asr(mocker):
+    """Mock qwen_asr for Qwen3Transcriber tests."""
+    mock_qwen_asr_module = mocker.MagicMock()
+    mocker.patch.dict("sys.modules", {"qwen_asr": mock_qwen_asr_module})
+
+    mock_model_class = MagicMock()
+    mock_qwen_asr_module.Qwen3ASRModel = mock_model_class
+
+    mock_model_instance = MagicMock()
+    mock_model_class.from_pretrained.return_value = mock_model_instance
+
+    # Mock transcribe to return a list with one result
+    mock_result = MagicMock()
+    mock_result.text = "Hello world"
+    mock_model_instance.transcribe.return_value = [mock_result]
+
+    return {
+        "class": mock_model_class,
+        "instance": mock_model_instance,
+        "result": mock_result,
+    }

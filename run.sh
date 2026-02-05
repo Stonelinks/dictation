@@ -1,5 +1,5 @@
 #!/bin/bash
-# Launch script for whisper-dictation
+# Launch script for dictation
 
 cd "$(dirname "$0")"
 
@@ -22,4 +22,10 @@ else
     exit 1
 fi
 
-"$UV_CMD" run whisper-dictation "$@"
+# Auto-detect platform extras
+EXTRAS=""
+if [ "$(uname -s)" = "Linux" ]; then
+    EXTRAS="--extra linux"
+fi
+
+"$UV_CMD" run $EXTRAS dictation "$@"

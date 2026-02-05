@@ -26,7 +26,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Target directories
-TARGETS="whisper_dictation tests"
+TARGETS="dictation tests"
 
 # Track if any issues were found
 ISSUES_FOUND=false

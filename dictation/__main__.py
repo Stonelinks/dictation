@@ -1,4 +1,4 @@
-"""Main entry point for the whisper dictation application."""
+"""Main entry point for the dictation application."""
 
 import sys
 
@@ -6,13 +6,13 @@ from .cli import parse_arguments
 from .config import create_default_config, validate_config
 from .core.recorder import Recorder
 from .core.text_processor import normalize_text
-from .core.transcriber import StandardWhisperTranscriber, WhisperTranscriber
+from .core.transcriber import Qwen3Transcriber, Transcriber
 from .platform.keyboard.base import KeyboardListener
 from .platform.text_injection.base import TextInjector
 from .ui.cli_ui import CLIUI
 
 
-def create_transcriber(config) -> WhisperTranscriber:
+def create_transcriber(config) -> Transcriber:
     """
     Create transcriber based on configuration.
 
@@ -20,10 +20,10 @@ def create_transcriber(config) -> WhisperTranscriber:
         config: DictationConfig instance
 
     Returns:
-        WhisperTranscriber: Transcriber instance
+        Transcriber: Transcriber instance
     """
-    print(f"[*] Loading Whisper model: {config.model_name}")
-    return StandardWhisperTranscriber(config.model_name)
+    print(f"[*] Loading Qwen3-ASR model: {config.model_name}")
+    return Qwen3Transcriber(config.model_name)
 
 
 def create_text_injector(config) -> TextInjector:
@@ -176,7 +176,7 @@ def main() -> None:
         # Print platform info
         print(f"[i] Platform: {config.platform.os_name}")
         if config.platform.is_apple_silicon:
-            print("[i] Apple Silicon detected")
+            print("[i] Apple Silicon detected (Metal acceleration via MPS)")
         if config.platform.is_wayland:
             print("[i] Wayland session detected")
         elif config.platform.is_x11:

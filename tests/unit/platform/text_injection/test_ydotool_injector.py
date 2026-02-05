@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from whisper_dictation.platform.text_injection.ydotool_injector import (
+from dictation.platform.text_injection.ydotool_injector import (
     YdotoolTextInjector,
 )
 

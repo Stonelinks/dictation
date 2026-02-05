@@ -4,7 +4,7 @@ from unittest.mock import call, patch
 
 import pytest
 
-from whisper_dictation.platform.text_injection.pynput_injector import PynputTextInjector
+from dictation.platform.text_injection.pynput_injector import PynputTextInjector
 
 
 @pytest.mark.unit

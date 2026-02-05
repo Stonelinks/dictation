@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from whisper_dictation.platform.detection import (
+from dictation.platform.detection import (
     PlatformInfo,
     _detect_apple_silicon,
     _detect_session_type,
@@ -228,7 +228,7 @@ class TestGetPlatformInfo:
 
     def test_caching_behavior(self, monkeypatch):
         """Test that platform info is cached."""
-        import whisper_dictation.platform.detection as detection_module
+        import dictation.platform.detection as detection_module
 
         # Reset the cache
         monkeypatch.setattr(detection_module, "_platform_info", None)

@@ -7,7 +7,7 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}=== Running Whisper Dictation Test Suite ===${NC}"
+echo -e "${BLUE}=== Running Dictation Test Suite ===${NC}"
 echo ""
 
 # Parse command line arguments
@@ -69,7 +69,7 @@ else
 fi
 
 if [ "$COVERAGE" = true ]; then
-    CMD="$CMD --cov=whisper_dictation --cov-report=term-missing --cov-report=html"
+    CMD="$CMD --cov=dictation --cov-report=term-missing --cov-report=html"
 fi
 
 if [ -n "$MARKERS" ]; then

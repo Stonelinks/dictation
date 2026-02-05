@@ -1,14 +1,14 @@
 [project]
-name = "whisper-dictation"
-version = "1.0.0"
-description = "Cross-platform multilingual dictation using OpenAI Whisper"
+name = "dictation"
+version = "2.0.0"
+description = "Cross-platform multilingual dictation powered by Qwen3-ASR"
 requires-python = ">=3.10,<3.13"
 license = { text = "MIT" }
 authors = [
-    { name = "Whisper Dictation Contributors" }
+    { name = "Dictation Contributors" }
 ]
 readme = "README.md"
-keywords = ["whisper", "dictation", "speech-to-text", "voice-recognition"]
+keywords = ["qwen3-asr", "dictation", "speech-to-text", "voice-recognition"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
@@ -23,7 +23,8 @@ dependencies = [
     "pyaudio>=0.2.13",
     "numpy>=1.24.0",
     "pynput>=1.7.6",
-    "faster-whisper>=1.1.0",
+    "qwen-asr>=0.0.6",
+    "numba>=0.57",
 ]
 
 [project.optional-dependencies]
@@ -32,7 +33,7 @@ linux = [
 ]
 
 [project.scripts]
-whisper-dictation = "whisper_dictation.__main__:main"
+dictation = "dictation.__main__:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -69,7 +70,7 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = ["whisper_dictation"]
+source = ["dictation"]
 omit = [
     "*/tests/*",
     "*/__main__.py",
@@ -107,7 +108,7 @@ ignore = ["E501", "N802", "SIM108"]
 "__main__.py" = ["T201"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["whisper_dictation"]
+known-first-party = ["dictation"]
 lines-after-imports = 2
 
 [tool.ruff.format]

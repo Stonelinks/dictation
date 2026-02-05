@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from whisper_dictation.platform.keyboard.pynput_listener import (
+from dictation.platform.keyboard.pynput_listener import (
     PynputKeyboardListener,
     _KeyComboHandler,
 )
@@ -140,7 +140,7 @@ class TestPynputKeyboardListenerIsRunning:
 class TestKeyComboHandler:
     """Tests for _KeyComboHandler internal class."""
 
-    @patch("whisper_dictation.platform.keyboard.pynput_listener.keyboard")
+    @patch("dictation.platform.keyboard.pynput_listener.keyboard")
     def test_parse_key_combination_with_special_keys(self, mock_keyboard):
         """Test parsing key combination with special keys."""
         mock_keyboard.Key.cmd_l = MagicMock()
@@ -152,7 +152,7 @@ class TestKeyComboHandler:
         assert handler.key1 is mock_keyboard.Key.cmd_l
         assert handler.key2 is mock_keyboard.Key.alt
 
-    @patch("whisper_dictation.platform.keyboard.pynput_listener.keyboard")
+    @patch("dictation.platform.keyboard.pynput_listener.keyboard")
     def test_parse_key_combination_ctrl_alt(self, mock_keyboard):
         """Test parsing ctrl+alt combination."""
         mock_keyboard.Key.ctrl = MagicMock()
@@ -164,7 +164,7 @@ class TestKeyComboHandler:
         assert handler.key1 is mock_keyboard.Key.ctrl
         assert handler.key2 is mock_keyboard.Key.alt
 
-    @patch("whisper_dictation.platform.keyboard.pynput_listener.keyboard")
+    @patch("dictation.platform.keyboard.pynput_listener.keyboard")
     def test_key_combo_triggers_callback(self, mock_keyboard):
         """Test that pressing both keys triggers callback."""
         mock_keyboard.Key.ctrl = MagicMock()
@@ -181,7 +181,7 @@ class TestKeyComboHandler:
         handler.on_key_press(mock_keyboard.Key.alt)
         callback.assert_called_once()
 
-    @patch("whisper_dictation.platform.keyboard.pynput_listener.keyboard")
+    @patch("dictation.platform.keyboard.pynput_listener.keyboard")
     def test_key_combo_no_double_trigger(self, mock_keyboard):
         """Test that holding keys doesn't trigger callback multiple times."""
         mock_keyboard.Key.ctrl = MagicMock()
@@ -199,7 +199,7 @@ class TestKeyComboHandler:
         handler.on_key_press(mock_keyboard.Key.ctrl)
         callback.assert_called_once()
 
-    @patch("whisper_dictation.platform.keyboard.pynput_listener.keyboard")
+    @patch("dictation.platform.keyboard.pynput_listener.keyboard")
     def test_key_combo_reset_on_release(self, mock_keyboard):
         """Test that releasing keys resets the combo trigger."""
         mock_keyboard.Key.ctrl = MagicMock()

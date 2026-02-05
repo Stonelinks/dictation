@@ -12,21 +12,21 @@ def parse_arguments() -> argparse.Namespace:
         argparse.Namespace: Parsed arguments
     """
     parser = argparse.ArgumentParser(
-        description="Cross-platform multilingual dictation using OpenAI Whisper",
+        description="Cross-platform multilingual dictation powered by Qwen3-ASR",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # Use default settings (platform-aware)
-  whisper-dictation
+  dictation
 
   # Use a specific model
-  whisper-dictation -m large-v3
+  dictation -m Qwen/Qwen3-ASR-1.7B
 
   # Specify languages
-  whisper-dictation -l en,es,fr
+  dictation -l en,es,fr
 
   # Custom hotkey
-  whisper-dictation -k ctrl+shift
+  dictation -k ctrl+shift
         """,
     )
 
@@ -36,10 +36,9 @@ Examples:
         type=str,
         default=None,
         help=(
-            "Model name to use: tiny, base, small, medium, large, "
-            "large-v2, large-v3, large-v3-turbo, turbo. "
-            "Add .en for English-only models (e.g., base.en). "
-            "Default: 'large-v3-turbo'"
+            "Qwen3-ASR model to use. "
+            "Default: Qwen/Qwen3-ASR-0.6B. "
+            "Use --list-models for available options."
         ),
     )
 
@@ -65,7 +64,7 @@ Examples:
             "Multiple languages can be comma-separated (e.g., 'en,es,fr'). "
             "The first language is used for transcription. "
             "Default: 'en' (English). "
-            "See https://github.com/openai/whisper for supported languages."
+            "Qwen3-ASR supports 30+ languages."
         ),
     )
 
@@ -87,12 +86,9 @@ Examples:
 
     # Handle --list-models
     if args.list_models:
-        print("Available model names:")
-        print("\nWhisper models:")
-        print(
-            "  tiny, base, small, medium, large, large-v2, large-v3, large-v3-turbo [default], turbo"
-        )
-        print("  *.en variants: tiny.en, base.en, small.en, medium.en")
+        print("Available Qwen3-ASR models:")
+        print("  Qwen/Qwen3-ASR-0.6B    [default] (fast, lightweight)")
+        print("  Qwen/Qwen3-ASR-1.7B              (better quality)")
         sys.exit(0)
 
     # Parse language list

@@ -1,285 +1,161 @@
 """Unit tests for transcriber module."""
 
-from unittest.mock import MagicMock
-
-import numpy as np
 import pytest
 
-from whisper_dictation.core.transcriber import StandardWhisperTranscriber
+from dictation.core.transcriber import LANGUAGE_MAP
 
 
 @pytest.mark.unit
-class TestStandardWhisperTranscriberInitialization:
-    """Tests for StandardWhisperTranscriber initialization."""
+class TestQwen3TranscriberInitialization:
+    """Tests for Qwen3Transcriber initialization."""
 
-    def test_default_initialization(self, mock_whisper_model):
+    def test_default_initialization(self, mock_qwen_asr):
         """Test initialization with default model."""
-        transcriber = StandardWhisperTranscriber()
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        assert transcriber.model_name == "large-v3"
-        mock_whisper_model["class"].assert_called_once_with(
-            "large-v3", device="cpu", compute_type="int8"
+        transcriber = Qwen3Transcriber()
+
+        assert transcriber.get_model_name() == "Qwen/Qwen3-ASR-0.6B"
+        mock_qwen_asr["class"].from_pretrained.assert_called_once_with(
+            "Qwen/Qwen3-ASR-0.6B"
         )
 
-    def test_custom_model_initialization(self, mock_whisper_model):
+    def test_custom_model_initialization(self, mock_qwen_asr):
         """Test initialization with custom model name."""
-        transcriber = StandardWhisperTranscriber(model_name="base")
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        assert transcriber.model_name == "base"
-        mock_whisper_model["class"].assert_called_once_with(
-            "base", device="cpu", compute_type="int8"
+        transcriber = Qwen3Transcriber(model_name="Qwen/Qwen3-ASR-1.7B")
+
+        assert transcriber.get_model_name() == "Qwen/Qwen3-ASR-1.7B"
+        mock_qwen_asr["class"].from_pretrained.assert_called_once_with(
+            "Qwen/Qwen3-ASR-1.7B"
         )
 
-    def test_initialization_without_faster_whisper(self, monkeypatch):
-        """Test that missing faster-whisper raises ImportError."""
-        # Remove faster_whisper from sys.modules to simulate it not being installed
+    def test_initialization_without_qwen_asr(self, monkeypatch):
+        """Test that missing qwen-asr raises ImportError."""
         import sys
 
         original_modules = sys.modules.copy()
 
-        # Remove faster_whisper if it exists
-        if "faster_whisper" in sys.modules:
-            monkeypatch.delitem(sys.modules, "faster_whisper")
+        for key in list(sys.modules.keys()):
+            if key.startswith("qwen_asr"):
+                monkeypatch.delitem(sys.modules, key)
 
-        # Mock the import to raise ImportError
         def mock_import(name, *args, **kwargs):
-            if name == "faster_whisper":
-                raise ImportError("No module named 'faster_whisper'")
+            if name == "qwen_asr":
+                raise ImportError("No module named 'qwen_asr'")
             return original_modules.get(name)
 
         monkeypatch.setattr("builtins.__import__", mock_import)
 
-        with pytest.raises(ImportError, match="faster-whisper is not installed"):
-            StandardWhisperTranscriber()
+        from dictation.core.transcriber import Qwen3Transcriber
+
+        with pytest.raises(ImportError, match="qwen-asr is not installed"):
+            Qwen3Transcriber()
 
 
 @pytest.mark.unit
-class TestStandardWhisperTranscriberTranscribe:
-    """Tests for transcribe method."""
+class TestQwen3TranscriberTranscribe:
+    """Tests for Qwen3Transcriber transcribe method."""
 
-    def test_transcribe_basic(self, mock_whisper_model, sample_audio):
+    def test_transcribe_basic(self, mock_qwen_asr, sample_audio):
         """Test basic transcription."""
-        transcriber = StandardWhisperTranscriber()
+        from dictation.core.transcriber import Qwen3Transcriber
 
+        transcriber = Qwen3Transcriber()
         result = transcriber.transcribe(sample_audio)
 
-        # Verify model.transcribe was called
-        mock_whisper_model["instance"].transcribe.assert_called_once()
-        call_args = mock_whisper_model["instance"].transcribe.call_args
+        # Verify model.transcribe was called with audio tuple
+        mock_qwen_asr["instance"].transcribe.assert_called_once()
+        call_args = mock_qwen_asr["instance"].transcribe.call_args
+        audio_arg = call_args[0][0]
+        assert isinstance(audio_arg, tuple)
+        assert audio_arg[1] == 16000  # sample rate
 
-        # Check audio data was passed
-        np.testing.assert_array_equal(call_args[0][0], sample_audio)
+        # No language specified → language=None passed
+        assert call_args[1]["language"] is None
 
-        # Check result
-        assert result == "Hello world"  # Based on mock setup in conftest
+        assert result == "Hello world"
 
-    def test_transcribe_with_language(self, mock_whisper_model, sample_audio):
+    def test_transcribe_with_language(self, mock_qwen_asr, sample_audio):
         """Test transcription with language parameter."""
-        transcriber = StandardWhisperTranscriber()
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        _result = transcriber.transcribe(sample_audio, language="es")
+        transcriber = Qwen3Transcriber()
+        transcriber.transcribe(sample_audio, language="es")
 
-        # Verify language was passed to model
-        call_kwargs = mock_whisper_model["instance"].transcribe.call_args[1]
-        assert call_kwargs["language"] == "es"
+        call_kwargs = mock_qwen_asr["instance"].transcribe.call_args[1]
+        assert call_kwargs["language"] == "Spanish"
 
-    def test_transcribe_with_none_language(self, mock_whisper_model, sample_audio):
-        """Test transcription with None language (auto-detect)."""
-        transcriber = StandardWhisperTranscriber()
+    def test_transcribe_with_none_language(self, mock_qwen_asr, sample_audio):
+        """Test transcription with None language passes None."""
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        _result = transcriber.transcribe(sample_audio, language=None)
+        transcriber = Qwen3Transcriber()
+        transcriber.transcribe(sample_audio, language=None)
 
-        # Verify language=None was passed to model
-        call_kwargs = mock_whisper_model["instance"].transcribe.call_args[1]
+        call_kwargs = mock_qwen_asr["instance"].transcribe.call_args[1]
         assert call_kwargs["language"] is None
 
-    def test_transcribe_joins_segments(self, mock_whisper_model, sample_audio):
-        """Test that multiple segments are joined with spaces."""
-        transcriber = StandardWhisperTranscriber()
+    def test_transcribe_strips_whitespace(self, mock_qwen_asr, sample_audio):
+        """Test that result is stripped of whitespace."""
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        # Create mock segments
-        segment1 = MagicMock()
-        segment1.text = "First segment"
-        segment2 = MagicMock()
-        segment2.text = "Second segment"
-        segment3 = MagicMock()
-        segment3.text = "Third segment"
+        mock_qwen_asr["result"].text = "  Text with whitespace  "
 
-        mock_info = MagicMock()
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [segment1, segment2, segment3],
-            mock_info,
-        )
-
-        result = transcriber.transcribe(sample_audio)
-
-        assert result == "First segment Second segment Third segment"
-
-    def test_transcribe_strips_whitespace(self, mock_whisper_model, sample_audio):
-        """Test that result is stripped of leading/trailing whitespace."""
-        transcriber = StandardWhisperTranscriber()
-
-        # Create mock segment with extra whitespace
-        segment = MagicMock()
-        segment.text = "  Text with whitespace  "
-
-        mock_info = MagicMock()
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [segment],
-            mock_info,
-        )
-
+        transcriber = Qwen3Transcriber()
         result = transcriber.transcribe(sample_audio)
 
         assert result == "Text with whitespace"
 
-    def test_transcribe_empty_segments(self, mock_whisper_model, sample_audio):
-        """Test transcription with no segments."""
-        transcriber = StandardWhisperTranscriber()
+    def test_transcribe_empty_results(self, mock_qwen_asr, sample_audio):
+        """Test handling of empty results list."""
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        mock_info = MagicMock()
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [],
-            mock_info,
-        )
+        mock_qwen_asr["instance"].transcribe.return_value = []
 
+        transcriber = Qwen3Transcriber()
         result = transcriber.transcribe(sample_audio)
 
         assert result == ""
 
-    def test_transcribe_single_segment(self, mock_whisper_model, sample_audio):
-        """Test transcription with single segment."""
-        transcriber = StandardWhisperTranscriber()
-
-        segment = MagicMock()
-        segment.text = "Single segment"
-
-        mock_info = MagicMock()
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [segment],
-            mock_info,
-        )
-
-        result = transcriber.transcribe(sample_audio)
-
-        assert result == "Single segment"
-
-    def test_transcribe_with_empty_audio(self, mock_whisper_model, empty_audio):
-        """Test transcription with empty audio."""
-        transcriber = StandardWhisperTranscriber()
-
-        _result = transcriber.transcribe(empty_audio)
-
-        # Should still work, just return whatever model returns
-        mock_whisper_model["instance"].transcribe.assert_called_once()
-
-    def test_transcribe_preserves_segment_order(self, mock_whisper_model, sample_audio):
-        """Test that segment order is preserved in result."""
-        transcriber = StandardWhisperTranscriber()
-
-        segment1 = MagicMock()
-        segment1.text = "One"
-        segment2 = MagicMock()
-        segment2.text = "Two"
-        segment3 = MagicMock()
-        segment3.text = "Three"
-
-        mock_info = MagicMock()
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [segment1, segment2, segment3],
-            mock_info,
-        )
-
-        result = transcriber.transcribe(sample_audio)
-
-        assert result == "One Two Three"
-
 
 @pytest.mark.unit
-class TestStandardWhisperTranscriberGetModelName:
-    """Tests for get_model_name method."""
+class TestQwen3TranscriberGetModelName:
+    """Tests for Qwen3Transcriber get_model_name method."""
 
-    def test_get_model_name_default(self, mock_whisper_model):
+    def test_get_model_name_default(self, mock_qwen_asr):
         """Test get_model_name with default model."""
-        transcriber = StandardWhisperTranscriber()
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        assert transcriber.get_model_name() == "large-v3"
+        transcriber = Qwen3Transcriber()
 
-    def test_get_model_name_custom(self, mock_whisper_model):
+        assert transcriber.get_model_name() == "Qwen/Qwen3-ASR-0.6B"
+
+    def test_get_model_name_custom(self, mock_qwen_asr):
         """Test get_model_name with custom model."""
-        transcriber = StandardWhisperTranscriber(model_name="tiny")
+        from dictation.core.transcriber import Qwen3Transcriber
 
-        assert transcriber.get_model_name() == "tiny"
+        transcriber = Qwen3Transcriber(model_name="Qwen/Qwen3-ASR-1.7B")
 
-    @pytest.mark.parametrize(
-        "model_name",
-        [
-            "tiny",
-            "base",
-            "small",
-            "medium",
-            "large",
-            "large-v2",
-            "large-v3",
-            "large-v3-turbo",
-            "base.en",
-        ],
-    )
-    def test_get_model_name_various_models(self, mock_whisper_model, model_name):
-        """Test get_model_name with various model names."""
-        transcriber = StandardWhisperTranscriber(model_name=model_name)
-
-        assert transcriber.get_model_name() == model_name
+        assert transcriber.get_model_name() == "Qwen/Qwen3-ASR-1.7B"
 
 
 @pytest.mark.unit
-class TestStandardWhisperTranscriberIntegration:
-    """Integration-style tests for StandardWhisperTranscriber."""
+class TestLanguageMap:
+    """Tests for LANGUAGE_MAP."""
 
-    def test_full_transcription_workflow(self, mock_whisper_model, sample_audio):
-        """Test complete transcription workflow."""
-        # Create transcriber
-        transcriber = StandardWhisperTranscriber(model_name="base")
+    def test_common_languages_mapped(self):
+        """Test that common languages are in the map."""
+        assert LANGUAGE_MAP["en"] == "English"
+        assert LANGUAGE_MAP["es"] == "Spanish"
+        assert LANGUAGE_MAP["fr"] == "French"
+        assert LANGUAGE_MAP["de"] == "German"
+        assert LANGUAGE_MAP["zh"] == "Chinese"
+        assert LANGUAGE_MAP["ja"] == "Japanese"
+        assert LANGUAGE_MAP["ko"] == "Korean"
 
-        # Set up mock for realistic transcription
-        seg1 = MagicMock()
-        seg1.text = "This is a"
-        seg2 = MagicMock()
-        seg2.text = "test transcription"
-
-        mock_info = MagicMock()
-        mock_whisper_model["instance"].transcribe.return_value = (
-            [seg1, seg2],
-            mock_info,
-        )
-
-        # Transcribe
-        result = transcriber.transcribe(sample_audio, language="en")
-
-        # Verify result
-        assert result == "This is a test transcription"
-        assert transcriber.get_model_name() == "base"
-
-        # Verify model was called correctly
-        call_args = mock_whisper_model["instance"].transcribe.call_args
-        np.testing.assert_array_equal(call_args[0][0], sample_audio)
-        assert call_args[1]["language"] == "en"
-
-    def test_multiple_transcriptions(
-        self, mock_whisper_model, sample_audio, short_audio
-    ):
-        """Test that transcriber can be reused for multiple transcriptions."""
-        transcriber = StandardWhisperTranscriber()
-
-        # First transcription
-        result1 = transcriber.transcribe(sample_audio, language="en")
-
-        # Second transcription with different audio
-        result2 = transcriber.transcribe(short_audio, language="es")
-
-        # Both should succeed
-        assert isinstance(result1, str)
-        assert isinstance(result2, str)
-
-        # Model should have been called twice
-        assert mock_whisper_model["instance"].transcribe.call_count == 2
+    def test_unknown_language_not_in_map(self):
+        """Test that unknown language codes are not in the map."""
+        assert "xx" not in LANGUAGE_MAP
+        assert "unknown" not in LANGUAGE_MAP

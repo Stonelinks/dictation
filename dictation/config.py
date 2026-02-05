@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from .platform.detection import PlatformInfo, get_platform_info
 
 
+DEFAULT_MODEL = "Qwen/Qwen3-ASR-0.6B"
+
+
 @dataclass
 class DictationConfig:
     """Configuration for the dictation application."""
@@ -49,9 +52,8 @@ def create_default_config(
     """
     platform = get_platform_info()
 
-    # Model name
     if model is None:
-        model = "large-v3-turbo"
+        model = DEFAULT_MODEL
 
     # Hotkey
     if hotkey is None:
@@ -82,15 +84,6 @@ def validate_config(config: DictationConfig) -> None:
     Raises:
         ValueError: If the configuration is invalid.
     """
-    # .en models must be used with English only
-    if ".en" in config.model_name and config.languages is not None:
-        non_english = [lang for lang in config.languages if lang != "en"]
-        if non_english:
-            raise ValueError(
-                f"Model '{config.model_name}' is English-only but languages "
-                f"{non_english} were specified"
-            )
-
     # Wayland requires ydotool
     if config.platform.is_wayland:
         import shutil

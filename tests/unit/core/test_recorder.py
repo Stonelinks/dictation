@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from whisper_dictation.core.recorder import Recorder
+from dictation.core.recorder import Recorder
 
 
 @pytest.mark.unit

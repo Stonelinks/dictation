@@ -56,7 +56,7 @@ class CLIUI(DictationUI):
         """Run the CLI UI (blocking)."""
         self._running = True
 
-        print("\n=== Whisper Dictation ===")
+        print("\n=== Dictation ===")
         print(f"[*] Press {self.hotkey_description} to start/stop recording")
         print("[*] Press Ctrl+C to exit\n")
 
