@@ -1,6 +1,9 @@
 """Main entry point for the dictation application."""
 
+import fcntl
 import sys
+import tempfile
+from pathlib import Path
 
 from .cli import parse_arguments
 from .config import create_default_config, validate_config
@@ -156,8 +159,33 @@ class DictationApp:
         self.ui.run()
 
 
+def _acquire_instance_lock():
+    """Acquire a file lock to ensure only one instance is running.
+
+    Uses fcntl.flock() which is automatically released by the OS
+    when the process exits (even on crash/kill).
+
+    Returns the open file handle (must be kept alive for the lock duration).
+    """
+    lock_path = Path(tempfile.gettempdir()) / "dictation.lock"
+    lock_file = open(lock_path, "w")  # noqa: SIM115
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        lock_file.close()
+        print(
+            "[!] Another instance of dictation is already running.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return lock_file
+
+
 def main() -> None:
     """Main entry point."""
+    # Ensure single instance
+    lock_file = _acquire_instance_lock()
+
     # Parse arguments
     args = parse_arguments()
 
@@ -192,6 +220,8 @@ def main() -> None:
     except Exception as e:
         print(f"[!] Error: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        lock_file.close()
 
 
 if __name__ == "__main__":
