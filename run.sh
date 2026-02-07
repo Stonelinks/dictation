@@ -28,4 +28,4 @@ if [ "$(uname -s)" = "Linux" ]; then
     EXTRAS="--extra linux"
 fi
 
-"$UV_CMD" run $EXTRAS dictation "$@"
+"$UV_CMD" run $EXTRAS -- python -m dictation "$@"
